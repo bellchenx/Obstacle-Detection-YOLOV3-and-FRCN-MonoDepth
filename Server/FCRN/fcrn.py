@@ -1,14 +1,9 @@
-import argparse
 import os
 import numpy as np
 import tensorflow as tf
-from scipy.misc import imresize
-from matplotlib import pyplot as plt
 from PIL import Image
-import torchvision.transforms.functional as F
-import torch
 
-import FCRN.models as models
+import models as models
 
 height = 228
 width = 304
@@ -24,13 +19,12 @@ net = models.ResNet50UpProj({'data': input_node}, batch_size, 1, False)
 sess = tf.Session()
 
 saver = tf.train.Saver()
-saver.restore(sess, "FCRN/NYU_FCRN.ckpt")
+saver.restore(sess, "NYU_FCRN.ckpt")
 
 def predict(img):
 #     Default input size
 #     Read image
-    img = torch.tensor(img, dtype=torch.float32)
-    img = F.to_pil_image(img)
+    img = Image.from_array(img)
     img = img.resize([width, height], Image.ANTIALIAS)
     img = np.array(img).astype('float32')
     img = np.expand_dims(np.asarray(img), axis = 0)
@@ -44,3 +38,13 @@ def predict(img):
                 
 def get_depth(pic):
     return predict(pic)
+
+if __name__ == "__main__":
+    import cv2
+    import time
+    image = cv2.imread("1.png")
+    for i in range(100):
+        t = time.time()
+        get_depth(image)
+        print("FPS: %.2f" %(1/(time.time()-t)))
+    sess.close()
